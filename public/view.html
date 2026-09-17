@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paste</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.3rem; color: #38bdf8; }
+    .meta { color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem; }
+    pre { background: #1e293b; padding: 1.25rem; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+    a { color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <div id="app">Loading...</div>
+  <script>
+    const id = location.pathname.split('/').pop();
+    fetch('/api/paste/' + id)
+      .then(r => r.json())
+      .then(p => {
+        if (p.error) {
+          document.getElementById('app').textContent = p.error;
+          return;
+        }
+        document.title = p.title || 'Paste ' + p.id;
+        document.getElementById('app').innerHTML = `
+          <h1>${escape(p.title || 'Untitled')}</h1>
+          <div class="meta">${p.language} • created ${new Date(p.created).toLocaleString()} • expires ${new Date(p.expires).toLocaleString()}</div>
+          <pre><code>${escape(p.content)}</code></pre>
+          <p><a href="/">← New paste</a></p>
+        `;
+      })
+      .catch(() => document.getElementById('app').textContent = 'Failed to load');
+
+    function escape(s) {
+      return s.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+    }
+  </script>
+</body>
+</html>
