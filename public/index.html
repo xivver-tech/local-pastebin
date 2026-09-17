@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Pastebin</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { color: #38bdf8; }
+    textarea { width: 100%; height: 300px; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 8px; padding: 1rem; font-family: ui-monospace, monospace; font-size: 0.95rem; }
+    input, select { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 0.5rem 0.75rem; margin-right: 0.5rem; }
+    button { background: #38bdf8; color: #0f172a; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .row { margin: 1rem 0; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    #result { margin-top: 1.5rem; padding: 1rem; background: #1e293b; border-radius: 8px; display: none; }
+  </style>
+</head>
+<body>
+  <h1>Local Pastebin</h1>
+  <p>Self-hosted. Private. Expires automatically.</p>
+
+  <div class="row">
+    <input type="text" id="title" placeholder="Title (optional)" style="flex:1">
+    <select id="lang">
+      <option value="text">text</option>
+      <option value="javascript">javascript</option>
+      <option value="python">python</option>
+      <option value="go">go</option>
+      <option value="rust">rust</option>
+      <option value="html">html</option>
+      <option value="css">css</option>
+      <option value="json">json</option>
+      <option value="markdown">markdown</option>
+    </select>
+    <select id="hours">
+      <option value="24">1 day</option>
+      <option value="168" selected>7 days</option>
+      <option value="720">30 days</option>
+    </select>
+  </div>
+
+  <textarea id="content" placeholder="Paste your code or text here..."></textarea>
+
+  <div class="row">
+    <button onclick="create()">Create Paste</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    async function create() {
+      const content = document.getElementById('content').value;
+      if (!content.trim()) return alert('Content is empty');
+      const res = await fetch('/api/paste', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content,
+          title: document.getElementById('title').value,
+          language: document.getElementById('lang').value,
+          hours: document.getElementById('hours').value
+        })
+      });
+      const data = await res.json();
+      if (data.error) return alert(data.error);
+      const box = document.getElementById('result');
+      box.style.display = 'block';
+      box.innerHTML = `Paste created: <a href="${data.url}" style="color:#38bdf8">${location.origin}${data.url}</a>`;
+    }
+  </script>
+</body>
+</html>
